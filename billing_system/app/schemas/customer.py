@@ -1,14 +1,17 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
+
 
 class CustomerCreate(BaseModel):
     name: str
-    email: EmailStr
+    email: str
+    phone: str
 
-class CustomerResponse(BaseModel):
+
+class CustomerSchema(BaseModel):
     id: int
     name: str
     email: str
-    is_active: bool
+    phone: str
 
     class Config:
         from_attributes = True

@@ -24,3 +24,14 @@ def validate_due_date(cls, value):
     if value <= date.today():
         raise ValueError("Due date must be future date")
     return value
+
+from pydantic import BaseModel
+
+
+class InvoiceSchema(BaseModel):
+    invoice_number: str
+    amount: float
+    status: str
+
+    class Config:
+        from_attributes = True

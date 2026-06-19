@@ -91,3 +91,10 @@ def get_payment(
 
     return payment
 
+@router.get("/payments")
+def get_payments(db: Session = Depends(get_db)):
+
+    payments = db.query(Payment).all()
+
+    return payments
+

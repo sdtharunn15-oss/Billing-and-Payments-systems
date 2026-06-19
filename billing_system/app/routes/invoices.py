@@ -6,7 +6,7 @@ from app.database import get_db
 from app.models.invoice import Invoice
 from app.models.customer import Customer
 from app.schemas.invoice import InvoiceCreate
-
+from app.schemas.invoice import InvoiceSchema
 from app.models.invoice_item import InvoiceItem
 from app.services.dependencies import admin_required
 router = APIRouter(
@@ -140,3 +140,56 @@ def get_invoices(
         "limit": limit,
         "data": invoices
     }
+
+@router.put("/invoices/{invoice_id}")
+def update_invoice(
+    invoice_id: int,
+    invoice: InvoiceSchema,
+    db: Session = Depends(get_db)
+):
+
+    db_invoice = db.query(Invoice).filter(
+        Invoice.id == invoice_id
+    ).first()
+
+    if not db_invoice:
+        raise HTTPException(
+            status_code=404,
+            detail="Invoice not found"
+        )
+
+    db_invoice.invoice_number = invoice.invoice_number
+    db_invoice.amount = invoice.amount
+    db_invoice.status = invoice.status
+
+    db.commit()
+    db.refresh(db_invoice)
+
+    return {
+        "message": "Invoice updated successfully",
+        "invoice": db_invoice
+    }
+
+@router.delete("/invoices/{invoice_id}")
+def delete_invoice(
+    invoice_id: int,
+    db: Session = Depends(get_db)
+):
+
+    db_invoice = db.query(Invoice).filter(
+        Invoice.id == invoice_id
+    ).first()
+
+    if not db_invoice:
+        raise HTTPException(
+            status_code=404,
+            detail="Invoice not found"
+        )
+
+    db.delete(db_invoice)
+    db.commit()
+
+    return {
+        "message": "Invoice deleted successfully"
+    }
+

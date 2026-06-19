@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
+from app.schemas.customer import CustomerCreate, CustomerSchema
 from app.database import get_db
 from app.models.customer import Customer
-from app.schemas.customer import CustomerCreate
+from app.schemas.customer import CustomerSchema
 
-from fastapi import APIRouter
+router = APIRouter()
 
 router = APIRouter(
     prefix="/api/v1/customers",
@@ -62,3 +62,39 @@ def get_customer(
         )
 
     return customer
+
+
+@router.put("/customers/{customer_id}")
+def update_customer(customer_id: int, customer: CustomerSchema, db: Session = Depends(get_db)):
+
+    db_customer = db.query(Customer).filter(Customer.id == customer_id).first()
+
+    if not db_customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    db_customer.name = customer.name
+    db_customer.email = customer.email
+    db_customer.phone = customer.phone
+
+    db.commit()
+    db.refresh(db_customer)
+
+    return {
+        "message": "Customer updated successfully",
+        "customer": db_customer
+    }
+
+@router.delete("/customers/{customer_id}")
+def delete_customer(customer_id: int, db: Session = Depends(get_db)):
+
+    db_customer = db.query(Customer).filter(Customer.id == customer_id).first()
+
+    if not db_customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    db.delete(db_customer)
+    db.commit()
+
+    return {
+        "message": "Customer deleted successfully"
+    }
